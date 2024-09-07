@@ -9,15 +9,21 @@ if ($wsid === 'new') {
     $worksite = 'new';
 } elseif ($wsid) {
     $worksite = get_post((int) $wsid);
-    if ($worksite->post_type !== 'worksite' || $worksite->post_author != $user) {
+    if ($worksite && ($worksite->post_type !== 'worksite' || $worksite->post_author != $user)) {
         $worksite = null;
     }
 }
 
 if ($worksite):
-    $location_details = get_post_meta($worksite->ID, 'castors_location_details', true) ?: '';
-    $location = $location_details ? json_decode(htmlspecialchars_decode($location_details)) : '';
-    $inclusive = get_post_meta($worksite->ID, 'castors_inclusive', true) ? true : '';
+    if ($worksite === 'new') {
+        $location_details = '';
+        $location = '';
+        $inclusive = false;
+    } else {
+        $location_details = get_post_meta($worksite->ID, 'castors_location_details', true) ?: '';
+        $location = $location_details ? json_decode(htmlspecialchars_decode($location_details)) : '';
+        $inclusive = get_post_meta($worksite->ID, 'castors_inclusive', true) ? true : false;
+    }
 ?>
     <form class="castors-EditWorksiteForm edit-worksite" action="" method="post" <?php do_action('castors_edit_worksite_form_tag'); ?> >
         <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide validate-required">
@@ -42,12 +48,17 @@ if ($worksite):
             <input type="text" class="woocommerce-Input woocommerce-Input--text input-text" name="location" id="location" value="<?= esc_attr($location ? $location->value : ''); ?>" />
             <input type="hidden" name="location-details" id="location-details" value="<?= htmlentities($location_details) ?>" />
         </p>
+        <p class="woocommerce-form-row woocommerce-form-row--last form-row form-row-last castors-location-nomap">
+            <label for="location-nomap">
+                <input type="checkbox" class="woocommerce-Input woocommerce-Input--checkbox input-checkbox" name="location-nomap" id="location-nomap" value="1" />
+                <?php esc_html_e("Ne pas afficher sur la carte des adhérents", 'castors'); ?>
+            </label>
+        </p>
         <div class="clear"></div>
         <p class="arkabase-field-desc"><em>
-            <?php esc_html_e("Entrez le code postal pour sélectionner la ville où se situe votre chantier pour l'afficher sur la carte comme chantier participatif.", 'castors' ); ?>
-            <?php esc_html_e("Vous pouvez indiquer l'adresse exacte dans la description, ou la transmettre directement aux personnes désireuses d'y participer.", 'castors' ); ?>
+            <?php esc_html_e("Entrez le code postal pour sélectionner la ville où se situe votre chantier, puis cocher la case pour l'afficher sur la carte.", 'castors' ); ?>
+            <?php esc_html_e("Vous pouvez indiquer l'adresse exacte dans la description, ou la transmettre en privé aux personnes désireuses d'y participer.", 'castors' ); ?>
         </em></p>
-        <div class="clear"></div>
         <p class="woocommerce-form-row woocommerce-form-row--first form-row form-row-first castors-transfer-wrap">
             <label for="tags"><?php esc_html_e("Détails du chantier", 'castors'); ?></label>
             <div id="transfer"></div>
@@ -67,8 +78,7 @@ if ($worksite):
         </p>
     </form>
     <?php wp_footer(); ?>
-    <?php Castors_Map::locationAutocompleteScript(); ?>
-    <?php Castors_Helper::listTransferScripts('worksite_tags', []); ?>
+    <?php Castors_User::locationAutocompleteScript('.castors-EditWorksiteForm #location', '.castors-EditWorksiteForm #location-details'); ?>
 
 <?php
 else:
@@ -108,7 +118,7 @@ else:
 ?>
     </div>
     <p>
-        <a href="/compte/chantier/?chantier=new" class="woocommerce-Button button<?php echo esc_attr( wc_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_wp_theme_get_element_class_name( 'button' ) : '' ); ?>" name="add_worksite" value="<?php esc_attr_e("Nouveau chantier", 'castors' ); ?>">
+        <a href="/compte/chantiers/?chantier=new" class="woocommerce-Button button<?php echo esc_attr( wc_wp_theme_get_element_class_name( 'button' ) ? ' ' . wc_wp_theme_get_element_class_name( 'button' ) : '' ); ?>" name="add_worksite" value="<?php esc_attr_e("Nouveau chantier", 'castors' ); ?>">
             <?= esc_html("Nouveau chantier", 'castors'); ?>
 </a>
     </p>
