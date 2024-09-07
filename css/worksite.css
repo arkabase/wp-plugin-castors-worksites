@@ -1,0 +1,30 @@
+.woocommerce .worksites .castors-Worksite-title {
+    background: #fbfbfb;
+    padding: 0.5em;
+    margin-bottom: 0;
+    border-width: 1px 1px 0 1px;
+    border-style: solid;
+    border-color: var(--ast-border-color);
+}
+
+.woocommerce .worksites .castors-Worksite-title h3 {
+    margin-bottom: 0;
+    float: left;
+    padding: 0.7em 1em;
+}
+
+.woocommerce .worksites .castors-Worksite-title .links {
+    float: right;
+    padding: 0.7em 1em;
+    text-align: right;
+}
+
+.woocommerce .worksites .castors-Worksite-title::after {
+    clear: both;
+    content: " ";
+    display: table;
+}
+
+.woocommerce .worksites .wp-post-image {
+    margin-bottom: 1em;
+}
