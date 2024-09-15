@@ -56,15 +56,16 @@ if ($worksite):
         </p>
         <div class="clear"></div>
         <p class="arkabase-field-desc"><em>
-            <?php esc_html_e("Entrez le code postal pour sélectionner la ville où se situe votre chantier, puis cocher la case pour l'afficher sur la carte.", 'castors' ); ?>
-            <?php esc_html_e("Vous pouvez indiquer l'adresse exacte dans la description, ou la transmettre en privé aux personnes désireuses d'y participer.", 'castors' ); ?>
+            <?php esc_html_e("Entrez le code postal pour sélectionner la ville où se situe votre chantier.", 'castors' ); ?>
+            <?php esc_html_e("Vous pouvez indiquer l'adresse exacte dans la description pour la rendre publique, ou la transmettre en privé aux personnes désireuses d'y participer.", 'castors' ); ?>
         </em></p>
-        <p class="woocommerce-form-row woocommerce-form-row--first form-row form-row-first castors-transfer-wrap">
-            <label for="tags"><?php esc_html_e("Détails du chantier", 'castors'); ?></label>
+        <div class="castors-transfer-wrap">
+            <p class="woocommerce-form-row woocommerce-form-row--wide form-row form-row-wide">
+                <label for="tags"><?php esc_html_e("Détails du chantier", 'castors'); ?></label>
+                <input type="hidden" name="worksite_tags" id="worksite_tags" value="" />
+            </p>
             <div id="transfer"></div>
-            <input type="hidden" name="worksite_tags" id="worksite_tags" value="" />
-        </p>
-        <div class="clear"></div>
+        </div>
         <p class="arkabase-field-desc"><em>
             <?php esc_html_e("Cochez dans la liste de gauche les éléments significatifs de votre chantier, puis cliquez sur la flèche pour les transférer dans la liste de droite et les associer au chantier.", 'castors' ); ?>
         </em></p>
@@ -77,8 +78,50 @@ if ($worksite):
             <input type="hidden" name="action" value="save_worksite" />
         </p>
     </form>
-    <?php wp_footer(); ?>
-    <?php Castors_User::locationAutocompleteScript('.castors-EditWorksiteForm #location', '.castors-EditWorksiteForm #location-details'); ?>
+    <?php
+        wp_footer();
+        Castors_Map::locationAutocompleteScript();
+
+        $items = [];
+
+        $terms = get_terms(['taxonomy' => 'worksite_tag', 'hide_empty' => false]);
+
+        $selected = [];
+        if ($worksite !== 'new') {
+            $the_terms = get_the_terms($worksite->ID, 'worksite_tag');
+            if (count($the_terms)) {
+                $selected = array_column($the_terms, 'term_id');
+            }
+        }
+
+        foreach ($terms as $term) {
+            if ($term->parent) {
+                if (!$items[$term->parent]) {
+                    $items[$term->parent] = [];
+                }
+                if (!$items[$term->parent]['groupArray']) {
+                    $items[$term->parent]['groupArray'] = [];
+                }
+                $items[$term->parent]['groupArray'][] = [
+                    'item' => $term->description,
+                    'value' => $term->term_id,
+                    'selected' => in_array($term->term_id, $selected),
+                ];
+                continue;
+            }
+            if (!$items[$term->term_id]) {
+                $items[$term->term_id] = [];
+            }
+            $items[$term->term_id]['groupItem'] = $term->description;
+        }
+
+        Castors_Helper::listTransferScripts('worksite_tags', [
+            'groupDataArray'        => array_values($items),
+            'tabNameText'           => __("Eléments disponibles", 'castors'),
+            'rightTabNameText'      => __("Eléments sélectionnés", 'castors'),
+            'searchPlaceholderText' => __("Rechercher", 'castors'),
+        ]);
+    ?>
 
 <?php
 else:
